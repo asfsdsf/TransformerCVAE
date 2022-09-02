@@ -15,14 +15,19 @@ import torch.nn.functional as F
 import copy
 
 from transformers.modeling_utils import PreTrainedModel, Conv1D, prune_conv1d_layer, SequenceSummary
-from transformers.modeling_gpt2 import *
-from transformers.modeling_bert import gelu
-from transformers.configuration_gpt2 import GPT2Config
+# from transformers.modeling_gpt2 import *
+from transformers.models.gpt2.modeling_gpt2 import *
+# from transformers.modeling_bert import gelu
+from transformers.models.bert.modeling_bert import ACT2FN
+gelu = ACT2FN['gelu']
+# from transformers.configuration_gpt2 import GPT2Config
+from transformers.models.gpt2.configuration_gpt2 import GPT2Config
 from transformers.file_utils import add_start_docstrings
 
 
 ####################### auxiliary attention blocks #######################
-class Unmasked_Attention(Attention):
+# class Unmasked_Attention(Attention):
+class Unmasked_Attention(GPT2Attention):
     def _attn(self, q, k, v, attention_mask=None, head_mask=None):
         w = torch.matmul(q, k)
         if self.scale:
@@ -45,14 +50,15 @@ class Unmasked_Attention(Attention):
         return outputs
 
 
-class Unmasked_Block(Block):
+# class Unmasked_Block(Block):
+class Unmasked_Block(GPT2Block):
     def __init__(self, n_ctx, config, scale=False):
-        super(Block, self).__init__()
+        super(GPT2Block, self).__init__()
         nx = config.n_embd
         self.ln_1 = nn.LayerNorm(nx, eps=config.layer_norm_epsilon)
         self.attn = Unmasked_Attention(nx, n_ctx, config, scale)
         self.ln_2 = nn.LayerNorm(nx, eps=config.layer_norm_epsilon)
-        self.mlp = MLP(4 * nx, config)
+        self.mlp = GPT2MLP(4 * nx, config)
 
 
 class AverageSelfAttention(nn.Module):
@@ -97,9 +103,11 @@ class AverageSelfAttention(nn.Module):
 
 
 # Pseudo self-attention
-class Cond_Attention(Attention):
+# class Cond_Attention(Attention):
+class Cond_Attention(GPT2Attention):
     def __init__(self, nx, n_ctx, config, scale=False):
-        super(Attention, self).__init__()
+        # super(Attention, self).__init__()
+        super(GPT2Attention, self).__init__()
         self.output_attentions = config.output_attentions
 
         n_state = nx  # in Attention: n_state=768 (nx=n_embd)
@@ -178,14 +186,17 @@ class Cond_Attention(Attention):
         return outputs  # a, present, (attentions)
 
 
-class Cond_Block(Block):
+# class Cond_Block(Block):
+class Cond_Block(GPT2Block):
     def __init__(self, n_ctx, config, scale=False):
-        super(Block, self).__init__()
+        # super(Block, self).__init__()
+        super(GPT2Block, self).__init__()
         nx = config.n_embd
         self.ln_1 = nn.LayerNorm(nx, eps=config.layer_norm_epsilon)
         self.attn = Cond_Attention(nx, n_ctx, config, scale)
         self.ln_2 = nn.LayerNorm(nx, eps=config.layer_norm_epsilon)
-        self.mlp = MLP(4 * nx, config)
+        # self.mlp = MLP(4 * nx, config)
+        self.mlp = GPT2MLP(4 * nx, config)
 
     def forward(self, x, z, layer_past=None, attention_mask=None, head_mask=None):
         output_attn = self.attn(
@@ -389,7 +400,8 @@ class Decoder(GPT2Model):
 
             self.h = nn.ModuleList([Cond_Block(config.n_ctx, config, scale=True) for _ in range(config.n_layer)])
         else:
-            self.h = nn.ModuleList([Block(config.n_ctx, config, scale=True) for _ in range(config.n_layer)])
+            # self.h = nn.ModuleList([Block(config.n_ctx, config, scale=True) for _ in range(config.n_layer)])
+            self.h = nn.ModuleList([GPT2Block(config.n_ctx, config, scale=True) for _ in range(config.n_layer)])
         self.ln_f = nn.LayerNorm(config.n_embd, eps=config.layer_norm_epsilon)
 
         self.init_weights()
