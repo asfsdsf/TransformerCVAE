@@ -226,7 +226,7 @@ class Encoder(GPT2Model):
 
         # manually modify number of layers in encoder to accommodate GPU memory
         n = 6  # config.n_layer
-        self.h = nn.ModuleList([Unmasked_Block(config.n_ctx, config, scale=True) for _ in range(n)])
+        self.h = nn.ModuleList([Unmasked_Block(config.n_positions, config, scale=True) for _ in range(n)])
 
         self.ln_f = nn.LayerNorm(config.n_embd, eps=config.layer_norm_epsilon)
 
@@ -398,10 +398,10 @@ class Decoder(GPT2Model):
             else:
                 self.attn_proj = nn.Linear(nz, nx, bias=False)
 
-            self.h = nn.ModuleList([Cond_Block(config.n_ctx, config, scale=True) for _ in range(config.n_layer)])
+            self.h = nn.ModuleList([Cond_Block(config.n_positions, config, scale=True) for _ in range(config.n_layer)])
         else:
-            # self.h = nn.ModuleList([Block(config.n_ctx, config, scale=True) for _ in range(config.n_layer)])
-            self.h = nn.ModuleList([GPT2Block(config.n_ctx, config, scale=True) for _ in range(config.n_layer)])
+            # self.h = nn.ModuleList([Block(config.n_positions, config, scale=True) for _ in range(config.n_layer)])
+            self.h = nn.ModuleList([GPT2Block(config.n_positions, config, scale=True) for _ in range(config.n_layer)])
         self.ln_f = nn.LayerNorm(config.n_embd, eps=config.layer_norm_epsilon)
 
         self.init_weights()
