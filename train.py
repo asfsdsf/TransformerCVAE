@@ -305,6 +305,7 @@ def main():
     t_writer = SummaryWriter(os.path.join(save_folder, 'train'), flush_secs=5)
     v_writer = SummaryWriter(os.path.join(save_folder, 'val'), flush_secs=5)
     # importlib.reload(logging)
+    import logging
     logging.basicConfig(filename=os.path.join(save_folder, 'train.log'),
                         level=logging.INFO, format='%(asctime)s--- %(message)s')
     logging.info('\n*******************************************************************************\n')
