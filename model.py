@@ -218,7 +218,7 @@ class Encoder(GPT2Model):
         super(GPT2Model, self).__init__(config)
         self.output_hidden_states = config.output_hidden_states
         self.output_attentions = config.output_attentions
-        self.output_past = config.output_past
+        self.use_cache = config.use_cache
 
         self.wte = nn.Embedding(config.vocab_size, config.n_embd)
         self.wpe = nn.Embedding(config.n_positions, config.n_embd)
@@ -334,7 +334,7 @@ class Encoder(GPT2Model):
             )
 
             hidden_states, present = outputs[:2]
-            if self.output_past:
+            if self.use_cache:
                 presents = presents + (present,)
 
             if self.output_attentions:
@@ -353,7 +353,7 @@ class Encoder(GPT2Model):
         logvar = self.logvar(representations)
 
         outputs = (mean, logvar, hidden_states,)
-        if self.output_past:
+        if self.use_cache:
             outputs = outputs + (presents,)
         if self.output_hidden_states:
             outputs = outputs + (all_hidden_states,)
@@ -377,7 +377,7 @@ class Decoder(GPT2Model):
 
         self.output_hidden_states = config.output_hidden_states
         self.output_attentions = config.output_attentions
-        self.output_past = config.output_past
+        self.use_cache = config.use_cache
 
         self.wte = nn.Embedding(config.vocab_size, config.n_embd)
         self.wpe = nn.Embedding(config.n_positions, config.n_embd)
@@ -526,7 +526,7 @@ class Decoder(GPT2Model):
                 )
 
             hidden_states, present = outputs[:2]
-            if self.output_past:
+            if self.use_cache:
                 presents = presents + (present,)
 
             if self.output_attentions:
@@ -540,7 +540,7 @@ class Decoder(GPT2Model):
             all_hidden_states = all_hidden_states + (hidden_states,)
 
         outputs = (hidden_states,)
-        if self.output_past:
+        if self.use_cache:
             outputs = outputs + (presents,)
         if self.output_hidden_states:
             outputs = outputs + (all_hidden_states,)
