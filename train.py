@@ -304,7 +304,7 @@ def main():
     os.makedirs(save_folder, exist_ok=True)
     t_writer = SummaryWriter(os.path.join(save_folder, 'train'), flush_secs=5)
     v_writer = SummaryWriter(os.path.join(save_folder, 'val'), flush_secs=5)
-    importlib.reload(logging)
+    # importlib.reload(logging)
     logging.basicConfig(filename=os.path.join(save_folder, 'train.log'),
                         level=logging.INFO, format='%(asctime)s--- %(message)s')
     logging.info('\n*******************************************************************************\n')
